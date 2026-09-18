@@ -14,13 +14,15 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0 -Force
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0 -Force
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "SecurityLayer" -Value 0 -Force
-          netsh advfirewall firewall delete rule name="RDP-Tailscale"
+          
+          # Hapus rule dengan abaikan error jika belum ada, lalu buat baru
+          netsh advfirewall firewall delete rule name="RDP-Tailscale" 2> $null || echo "Cleared old rules"
           netsh advfirewall firewall add rule name="RDP-Tailscale" dir=in action=allow protocol=TCP localport=3389
-          Restart-Service -Name TermService -Force
+          
+          # Baris Restart-Service DIHAPUS agar runner tidak stuck
 
       - name: Create RDP User (Simple Method)
         run: |
-          # Bikin user langsung pakai CMD tanpa ConvertTo-SecureString yang ribet
           net user RDP "GalihPratama1717!" /add
           net localgroup Administrators RDP /add
           net localgroup "Remote Desktop Users" RDP /add
